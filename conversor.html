@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Malbec Day</title>
+  </head>
+  <body>
+    <script>
+      var url = "http://0.0.0.0:8000/Documentos/conversor-pdf-html/exemplo.pdf";
+
+      // Cria uma variavel pra acessar o que o pdf.js exporta.
+      var pdfjsLib = window["pdfjs-dist/build/pdf"];
+
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://mozilla.github.io/pdf.js/build/pdf.worker.js";
+
+      var currPage = 1;
+      var numPages = 0;
+      var thePDF = null;
+
+      pdfjsLib.getDocument(url).promise.then(function (pdf) {
+        thePDF = pdf;
+
+        numPages = pdf.numPages;
+
+        //começa a renderizar a pagina um e chama a função que vai passar as demais paginas
+        pdf.getPage(1).then(handlePages);
+      });
+
+      function handlePages(page) {
+        var viewport = page.getViewport({ scale: 1.5 });
+
+        //cria um canvas para cada elemento e ja deixa ele estilizado
+        var canvas = document.createElement("canvas");
+        canvas.style.width = "100%";
+        var context = canvas.getContext("2d");
+
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        //Renderiza os canvas
+        page.render({ canvasContext: context, viewport: viewport });
+
+        //Adiciona na página
+        document.body.appendChild(canvas);
+
+        var line = document.createElement("br");
+        document.body.appendChild(line);
+
+        //Cria a proxima página
+        currPage++;
+        if (thePDF !== null && currPage <= numPages) {
+          thePDF.getPage(currPage).then(handlePages);
+        }
+      }
+    </script>
+  </body>
+</html>
